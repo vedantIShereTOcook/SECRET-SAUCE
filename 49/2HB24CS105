@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_LEN 1024
+// A simple queue of strings implemented using array of pointers
+typedef struct {
+ char **arr;
+ int front, rear;
+ int capacity;
+} Queue;
+Queue* createQueue(int capacity) {
+ Queue *q = (Queue*)malloc(sizeof(Queue));
+ q->capacity = capacity;
+ q->front = 0;
+ q->rear = 0;
+ q->arr = (char**)malloc(sizeof(char*) * capacity);
+ for (int i = 0; i < capacity; ++i) q->arr[i] = NULL;
+ return q;
+}
+void enqueue(Queue *q, const char *s) {
+ if (q->rear >= q->capacity) {
+ // simple resize
+ int newcap = q->capacity * 2;
+ q->arr = (char**)realloc(q->arr, sizeof(char*) * newcap);
+ for (int i = q->capacity; i < newcap; ++i) q->arr[i] = NULL;
+ q->capacity = newcap;
+ }
+ q->arr[q->rear] = (char*)malloc(strlen(s) + 1);
+ strcpy(q->arr[q->rear], s);
+ q->rear++;
+}
+char* dequeue(Queue *q) {
+ if (q->front == q->rear) return NULL;
+ char *res = q->arr[q->front];
+ q->arr[q->front] = NULL;
+ q->front++;
+ return res;
+}
+void freeQueue(Queue *q) {
+ for (int i = q->front; i < q->rear; ++i) {
+ if (q->arr[i]) free(q->arr[i]);
+ }
+ free(q->arr);
+ free(q);
+}
+// Function to print binary numbers from 0 to N (inclusive)
+void generateBinaries(int N) {
+ if (N < 0) return;
+ printf("0\n");
+ if (N == 0) return;
+ Queue *q = createQueue(32);
+ enqueue(q, "1");
+ int count = 1; // we already printed 0
+ while (count <= N && q->front != q->rear) {
+ char *s = dequeue(q);
+ if (!s) break;
+ printf("%s\n", s);
+ count++;
+ // prepare s0 and s1
+ int len = strlen(s);
+ char *s0 = (char*)malloc(len + 2);
+ char *s1 = (char*)malloc(len + 2);
+ strcpy(s0, s);
+ strcpy(s1, s);
+ s0[len] = '0'; s0[len+1] = '\0';
+ s1[len] = '1'; s1[len+1] = '\0';
+ enqueue(q, s0);
+ enqueue(q, s1);
+ free(s0); free(s1);
+ free(s);
+ }
+ freeQueue(q);
+}
+int main() {
+ int N;
+ printf("Enter N: ");
+ if (scanf("%d", &N) != 1) {
+ fprintf(stderr, "Invalid input\\n");
+ return 1;
+ }
+ generateBinaries(N);
+ return 0;
+}
