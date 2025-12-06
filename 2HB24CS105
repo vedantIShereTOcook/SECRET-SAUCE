@@ -1,0 +1,143 @@
+Class MessageModerator:
+    Def __init__(self):
+        # Initialize three separate queues using deque for efficiency
+        Self.command_queue = deque()
+        Self.debug_queue = deque()
+        Self.output_queue = deque()
+
+    Def load_from_file(self, filename):
+        “””Reads a file and sorts messages into queues based on keywords.”””
+        If not os.path.exists(filename):
+            Print(f”Error: File ‘{filename}’ not found. Starting with empty queues.”)
+            Return
+
+        Try:
+            With open(filename, ‘r’) as file:
+                Lines = file.readlines()
+                For line in lines:
+                    Self.process_incoming_message(line.strip())
+            Print(“File loaded and messages sorted successfully.”)
+        Except Exception as e:
+            Print(f”An error occurred while reading the file: {e}”)
+
+    Def process_incoming_message(self, message):
+        “””Helper function to sort a single message string.”””
+        If not message:
+            Return 
+
+        # Using ‘in’ to check if the keyword exists anywhere in the line
+        If “cmd” in message:
+            Self.command_queue.append(message)
+        Elif “Debug” in message:
+            Self.debug_queue.append(message)
+        Elif “Output” in message:
+            Self.output_queue.append(message)
+        Else:
+            # Optional: Handle messages that match no criteria
+            Pass
+
+    # --- View Functions ---
+    Def view_queue(self, queue_type):
+        “””Displays contents of a specific queue without removing them.”””
+        If queue_type == “cmd”:
+            Q = self.command_queue
+            Name = “Command”
+        Elif queue_type == “debug”:
+            Q = self.debug_queue
+            Name = “Debug”
+        Else:
+            Q = self.output_queue
+            Name = “Output”
+
+        Print(f”\n--- Current {name} Queue ---“)
+        If not q:
+            Print(“(Empty)”)
+        Else:
+            For I, msg in enumerate(q, 1):
+                Print(f”{i}. {msg}”)
+        Print(“----------------------------“)
+
+    # --- Execution/Print Functions (The ‘Pop’ Operation) ---
+    Def execute_from_queue(self, queue_type):
+        “””Removes the first item from the queue and ‘processes’ it.”””
+        If queue_type == “cmd”:
+            Q = self.command_queue
+            Action = “Executing Command”
+        Elif queue_type == “debug”:
+            Q = self.debug_queue
+            Action = “Printing Debug Info”
+        Else:
+            Q = self.output_queue
+            Action = “Printing Output”
+
+        If q:
+            # popleft() is the correct way to remove from the front of a Queue
+            Msg = q.popleft() 
+            Print(f”Success: {action} -> ‘{msg}’”)
+        Else:
+            Print(f”Warning: The {queue_type} queue is empty!”)
+
+    # --- Manual Add Functions ---
+    Def add_manual_message(self, queue_type):
+        “””Allows user to manually input a message.”””
+        Msg = input(f”Enter the {queue_type} message: “)
+        # We enforce the keyword to ensure consistency
+        If queue_type == “cmd” and “cmd” not in msg:
+            Msg += “ (cmd)”
+        Elif queue_type == “debug” and “Debug” not in msg:
+            Msg += “ (Debug)”
+        Elif queue_type == “output” and “Output” not in msg:
+            Msg += “ (Output)”
+        
+        Self.process_incoming_message(msg)
+        Print(“Message added.”)
+
+# --- Main Program Execution ---
+Def main():
+    System = MessageModerator()
+    
+    # 1. Ask for file input first
+    Filename = input(“Enter the filename to load (e.g., messages.txt): “)
+    System.load_from_file(filename)
+
+    While True:
+        Print(“\n=== Message Moderation System Menu ===”)
+        Print(“1. See the Command Queue”)
+        Print(“2. See the Debug Queue”)
+        Print(“3. See the Output Queue”)
+        Print(“4. Execute a Command”)
+        Print(“5. Print a Debug Statement”)
+        Print(“6. Print an Output Statement”)
+        Print(“7. Add a command to the queue”)
+        Print(“8. Add a Debug Statement to the queue”)
+        Print(“9. Add a Output Statement to the queue”)
+        Print(“0. Exit”)
+        
+        Choice = input(“Enter your choice: “)
+
+        If choice == ‘1’:
+            System.view_queue(“cmd”)
+        Elif choice == ‘2’:
+            System.view_queue(“debug”)
+        Elif choice == ‘3’:
+            System.view_queue(“output”)
+        Elif choice == ‘4’:
+            System.execute_from_queue(“cmd”)
+        Elif choice == ‘5’:
+            System.execute_from_queue(“debug”)
+        Elif choice == ‘6’:
+            System.execute_from_queue(“output”)
+        Elif choice == ‘7’:
+            System.add_manual_message(“cmd”)
+        Elif choice == ‘8’:
+            System.add_manual_message(“debug”)
+        Elif choice == ‘9’:
+            System.add_manual_message(“output”)
+        Elif choice == ‘0’:
+            Print(“Exiting system.”)
+            Break
+        Else:
+            Print(“Invalid choice. Please try again.”)
+
+If __name__ == “__main__”:
+    Main()
